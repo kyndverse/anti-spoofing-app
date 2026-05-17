@@ -1,12 +1,29 @@
-import { Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import "../global.css";
 
-export default function Index() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-blue-500">
-        Welcome to Nativewind!
-      </Text>
-    </View>
-  );
+const ONBOARDING_KEY = "@antispoofing/onboarding_done";
+
+export default function RootIndex() {
+  const [isReady, setIsReady] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_KEY).then((val) => {
+      setOnboardingDone(val === "true");
+      setIsReady(true);
+    });
+  }, []);
+
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#070D18", justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator color="#1687A7" size="large" />
+      </View>
+    );
+  }
+
+  return <Redirect href={onboardingDone ? "/(tabs)" : "/onboarding"} />;
 }
