@@ -1,12 +1,6 @@
-import { Text, View } from "react-native";
-import "../global.css";
+import { Redirect } from "expo-router";
 
 export default function Index() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-blue-500">
-        Welcome to Nativewind!
-      </Text>
-    </View>
-  );
+  // Langsung arahkan pengguna ke dalam folder (tabs)
+  return <Redirect href="/(tabs)" />;
 }

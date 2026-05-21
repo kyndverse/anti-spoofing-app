@@ -1,45 +1,85 @@
 import { colors } from "@/lib/colors";
 import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Dimensions, View } from "react-native";
+import { Platform, useWindowDimensions, View } from "react-native";
+
+const WEB_MAX_WIDTH = 430;
 
 const TabsLayout = () => {
-  const { width, height } = Dimensions.get("window");
+  const { width } = useWindowDimensions();
 
-  const buttonSize = width * 0.18;
+  const isWeb = Platform.OS === "web";
+
+  const barWidth = isWeb ? Math.min(width, WEB_MAX_WIDTH) : width;
+  const tabBarHeight = isWeb ? 68 : 82;
+  const buttonSize = isWeb ? 56 : Math.min(width * 0.16, 68);
+  const iconSize = isWeb ? 24 : 28;
 
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+
         tabBarActiveTintColor: colors.active,
         tabBarInactiveTintColor: colors.inactive,
 
         tabBarStyle: {
-          backgroundColor: colors.backgound,
-          paddingTop: height * 0.02,
-          height: height * 0.1,
-          paddingBottom: height * 0.015,
+          position: "absolute",
+          bottom: 0,
+
+          width: barWidth,
+          height: tabBarHeight,
+
+          backgroundColor: colors.background,
+          borderTopWidth: 1,
+          borderTopColor: "#E5E7EB",
+
+          paddingTop: 0,
+          paddingBottom: 0,
+
+          elevation: 0,
+          shadowOpacity: 0,
+
+          ...(isWeb
+            ? {
+                left: (width - barWidth) / 2,
+              }
+            : {
+                left: 0,
+                right: 0,
+              }),
         },
-        headerShown: false,
+
+        tabBarItemStyle: {
+          height: tabBarHeight,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+
+        tabBarIconStyle: {
+          alignItems: "center",
+          justifyContent: "center",
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "",
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <View
               style={{
-                width: width * 0.17,
-                height: width * 0.17,
+                width: buttonSize,
+                height: buttonSize,
                 borderRadius: buttonSize / 2,
                 backgroundColor: colors.active,
                 justifyContent: "center",
                 alignItems: "center",
-                transform: [{ translateY: -height * 0.02 }],
+                transform: [{ translateY: -14 }],
               }}
             >
-              <Feather name="camera" size={28} color="white" />
+              <Feather name="camera" size={iconSize} color="white" />
             </View>
           ),
         }}

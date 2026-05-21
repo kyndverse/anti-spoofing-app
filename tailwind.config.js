@@ -11,7 +11,9 @@ module.exports = {
       colors: {
         active: "#1687A7",
         inactive: "#276678",
-        backgound: "#F6F5F5",
+        background: "#F6F5F5", // Typo diperbaiki
+        success: "#10B981",    // Hijau untuk Real
+        danger: "#EF4444",     // Merah untuk Fake
       },
     },
   },
