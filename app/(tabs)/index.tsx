@@ -1,3 +1,5 @@
+import { getPrediction } from "@/lib/api";
+import { ApiResponse } from "@/types/ApiResponse";
 import { Feather } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
@@ -16,13 +18,6 @@ import {
   View,
 } from "react-native";
 
-type ApiResponse = {
-  prediction: string;
-  probabilities: Record<string, number>;
-  raw?: unknown;
-};
-
-const API_URL = "https://unnamed-agonize-crestless.ngrok-free.dev/predict";
 const WEB_MAX_WIDTH = 430;
 
 const Index = () => {
@@ -82,29 +77,6 @@ const Index = () => {
     }
   };
 
-  const normalizeApiResponse = (data: any): ApiResponse => {
-    const prediction = String(
-      data?.prediction ?? data?.class ?? data?.label ?? "unknown",
-    );
-
-    let probabilities =
-      data?.probabilities ?? data?.probability ?? data?.scores;
-
-    if (
-      !probabilities ||
-      typeof probabilities !== "object" ||
-      Array.isArray(probabilities)
-    ) {
-      probabilities = {};
-    }
-
-    return {
-      prediction,
-      probabilities,
-      raw: data,
-    };
-  };
-
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "back" ? "front" : "back"));
   };
@@ -114,46 +86,16 @@ const Index = () => {
       setIsProcessing(true);
       setResult(null);
 
-      const formData = new FormData();
+      const response = await getPrediction(uri);
 
-      if (Platform.OS === "web") {
-        const imageResponse = await fetch(uri);
-        const blob = await imageResponse.blob();
+      setResult(response);
 
-        formData.append("file", blob, "face_detection.jpg");
-      } else {
-        formData.append("file", {
-          uri,
-          name: "face_detection.jpg",
-          type: "image/jpeg",
-        } as any);
-      }
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: formData,
-      });
-
-      const rawText = await response.text();
-      console.log("RAW API RESPONSE:", rawText);
-
-      if (!response.ok) {
-        throw new Error(
-          `Server merespons dengan status ${response.status}: ${rawText}`,
-        );
-      }
-
-      const parsedData = JSON.parse(rawText);
-      console.log("PARSED API DATA:", parsedData);
-
-      const normalizedResult = normalizeApiResponse(parsedData);
-      setResult(normalizedResult);
-
-      if (normalizedResult.prediction === "realperson") {
+      if (response.prediction === "realperson") {
         await safeHaptic(Haptics.NotificationFeedbackType.Success);
       } else {
         await safeHaptic(Haptics.NotificationFeedbackType.Warning);
       }
+
     } catch (error) {
       console.error("API Error:", error);
 
@@ -221,7 +163,7 @@ const Index = () => {
       setResult(null);
 
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.7,
